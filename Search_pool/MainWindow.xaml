@@ -1,0 +1,27 @@
+﻿<Window x:Class="Search_pool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Search_pool"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <Label Content="Query file"/>
+            <TextBox x:Name="TxtboxQueryFile" Text="...query file path..."/>
+        </StackPanel>
+        <StackPanel Grid.Row="1">
+            <Label Content="Protein pool file"/>
+            <TextBox x:Name="TxtboxProteinPoolFile" Text="...protein pool file path..."/>
+        </StackPanel>
+        <StackPanel Grid.Row="2">
+            <Button x:Name="BtnSearchPool" Content="SearchPool" Click="BtnSearchPool_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
