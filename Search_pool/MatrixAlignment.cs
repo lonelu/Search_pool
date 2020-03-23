@@ -112,20 +112,54 @@ namespace Search_pool
         {
             Stack<Tuple<int, int, int>> path = new Stack<Tuple<int, int, int>>();
 
-            int j = MA.MaxScorePos.Item1;
-            int i = MA.MaxScorePos.Item2;
-            while (j > 0 && i > 0 && MA.matrix[j][i].MaxCost > 0)
+            if (MA.MaxScore > 0)
             {
-                int preJ = MA.matrix[j][i].Source.Item1;
-                int preI = MA.matrix[j][i].Source.Item2;
-                int direction = MA.matrix[j][i].Source.Item3;
-                path.Push(new Tuple<int, int, int>(preJ, preI, direction));
+                int j = MA.MaxScorePos.Item1;
+                int i = MA.MaxScorePos.Item2;
+                while (j > 0 && i > 0 && MA.matrix[j][i].MaxCost > 0)
+                {
+                    int preJ = MA.matrix[j][i].Source.Item1;
+                    int preI = MA.matrix[j][i].Source.Item2;
+                    int direction = MA.matrix[j][i].Source.Item3;
+                    path.Push(new Tuple<int, int, int>(preJ, preI, direction));
 
-                j = preJ;
-                i = preI;
+                    j = preJ;
+                    i = preI;
+                }
             }
 
             return path;
+        }
+
+        //Needleman–Wunsch algorithm with retriction
+        public static void AlignMatrix_UpLeft(MatrixAlignment MA, int gap, Dictionary<char, Dictionary<char, int>> scoreTable)
+        {
+            //initial score be minus infinite.
+            var _maxScore = -1084;
+            for (int j = 1; j < MA.QueryLength + 1; j++)
+            {
+                for (int i = 1; i < MA.ProteinLength + 1; i++)
+                {
+                    var lu = MA.matrix[j - 1][i - 1].MaxCost + scoreTable[MA.Query[j - 1]][MA.Protein[i - 1]];
+
+                    MA.matrix[j][i].MaxCost = lu;
+                    MA.matrix[j][i].Source = new Tuple<int, int, int>(j - 1, i - 1, 0);
+                }
+            }
+
+            if (MA.ProteinLength >= MA.QueryLength)
+            {
+                for (int i = MA.QueryLength; i < MA.ProteinLength + 1; i++)
+                {
+                    if (MA.matrix[MA.QueryLength][i].MaxCost > _maxScore)
+                    {
+                        _maxScore = MA.matrix[MA.QueryLength][i].MaxCost;
+                        MA.MaxScore = _maxScore;
+                        MA.MaxScorePos = new Tuple<int, int>(MA.QueryLength, i);
+                    }
+                   
+                }
+            }
         }
 
         public static char[][] SequenceComparison(MatrixAlignment MA, Stack<Tuple<int, int, int>> path)

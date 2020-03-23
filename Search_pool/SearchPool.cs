@@ -19,7 +19,7 @@ namespace Search_pool
 
         public Parameters Parameters { get; private set; }
 
-        public void Run(string db_path, string query_path)
+        public void Run(string db_path, string query_path, int matrixId)
         {
             var queries = DataBaseManipulation.LoadQueryMap(query_path);
 
@@ -49,7 +49,14 @@ namespace Search_pool
                     {
                         MatrixAlignment ma = new MatrixAlignment(dProteins[index].BaseSequence, dQueries[i]);
 
-                        MatrixAlignment.AlignMatrix(ma, gap, MatrixAlignment.ScoreTable);
+                        if (matrixId == 0)
+                        {
+                            MatrixAlignment.AlignMatrix(ma, gap, MatrixAlignment.ScoreTable);
+                        }
+                        else if (matrixId == 1)
+                        {
+                            MatrixAlignment.AlignMatrix_UpLeft(ma, gap, MatrixAlignment.ScoreTable);
+                        }       
 
                         scores[i][index] = ma.MaxScore;
 
@@ -94,7 +101,8 @@ namespace Search_pool
             }
 
             //Write candidate out.
-            string outFilePath = Path.Combine(Path.GetDirectoryName(query_path), @"targets.tsv");
+            var fileName = "target_matrix" + matrixId + ".tsv";
+            string outFilePath = Path.Combine(Path.GetDirectoryName(query_path), fileName);
             WriteTargets(targets, outFilePath);
         }
 

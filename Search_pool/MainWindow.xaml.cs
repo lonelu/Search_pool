@@ -29,7 +29,7 @@ namespace Search_pool
         {
             SearchPool searchPool = new SearchPool();
 
-            searchPool.Run(TxtboxProteinPoolFile.Text, TxtboxQueryFile.Text);
+            searchPool.Run(TxtboxProteinPoolFile.Text, TxtboxQueryFile.Text, 1);
         }
 
         private void BtnSelectQueryFile_Click(object sender, RoutedEventArgs e)
