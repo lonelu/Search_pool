@@ -27,7 +27,45 @@ namespace Search_pool
 
         private void BtnSearchPool_Click(object sender, RoutedEventArgs e)
         {
+            SearchPool searchPool = new SearchPool();
 
+            searchPool.Run(TxtboxProteinPoolFile.Text, TxtboxQueryFile.Text);
+        }
+
+        private void BtnSelectQueryFile_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openPicker = new Microsoft.Win32.OpenFileDialog()
+            {
+                Filter = "Database Files|*.fasta;*.fa;*.pdb",
+                FilterIndex = 1,
+                RestoreDirectory = true,
+                Multiselect = true
+            };
+            if (openPicker.ShowDialog() == true)
+            {
+                foreach (var filepath in openPicker.FileNames.OrderBy(p => p))
+                {
+                    TxtboxQueryFile.Text = filepath;
+                }
+            }
+        }
+
+        private void BtnSelectProteinDatabaseFile_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openPicker = new Microsoft.Win32.OpenFileDialog()
+            {
+                Filter = "Query Files|*.fasta;*.fa",
+                FilterIndex = 1,
+                RestoreDirectory = true,
+                Multiselect = true
+            };
+            if (openPicker.ShowDialog() == true)
+            {
+                foreach (var filepath in openPicker.FileNames.OrderBy(p => p))
+                {
+                    TxtboxProteinPoolFile.Text = filepath;
+                }
+            }
         }
     }
 }

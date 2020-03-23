@@ -8,9 +8,8 @@ namespace Search_pool
     {
         public Parameters()
         {
-            MaxThreadsToUsePerFile = 4;
+            MaxThreadsToUse = 39;
         }
-
-        public int MaxThreadsToUsePerFile { get; set; }
+        public int MaxThreadsToUse { get; set; }
     }
 }

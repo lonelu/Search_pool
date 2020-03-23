@@ -15,10 +15,12 @@
         <StackPanel>
             <Label Content="Query file"/>
             <TextBox x:Name="TxtboxQueryFile" Text="...query file path..."/>
+            <Button x:Name="BtnSelectQueryFile" Content="Select Query File" Click="BtnSelectQueryFile_Click"/>
         </StackPanel>
         <StackPanel Grid.Row="1">
             <Label Content="Protein pool file"/>
             <TextBox x:Name="TxtboxProteinPoolFile" Text="...protein pool file path..."/>
+            <Button x:Name="BtnSelectProteinDatabaseFile" Content="Select Database File" Click="BtnSelectProteinDatabaseFile_Click"/>
         </StackPanel>
         <StackPanel Grid.Row="2">
             <Button x:Name="BtnSearchPool" Content="SearchPool" Click="BtnSearchPool_Click"/>

@@ -18,11 +18,11 @@ namespace Test
         {
             string filePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"TestData\UnkwnPro_queries_optimized.pdb");
 
-            var queries = SearchPool.LoadQueryMap(filePath);
+            var queries = DataBaseManipulation.LoadQueryMap(filePath);
 
             Assert.That(queries.Count == 3);
 
-            var dQueries = SearchPool.DegenerateQueryMap(queries);
+            var dQueries = DataBaseManipulation.DegenerateQueryMap(queries);
 
             //Assert.That(dQueries.First() == "ZGGMYZZZZGGYPZYXGYGZ");
 
@@ -43,7 +43,7 @@ namespace Test
                 "RTFELYYNKYKQQIKYQNFMVKNDTPCGSTVGSMVAANLSMPGIDIGIPQLAMHSIREIA" +
                 "AVHDVFFLIKGVFAFYTYYNQVLSTCVHDK";
 
-            string protein = SearchPool.DegenerateSequence(Q8I2J3);
+            string protein = DataBaseManipulation.DegenerateSequence(Q8I2J3);
 
             string query = "LGGKYLLLLGGYPLYXGYGL";
             int gap = 32767;
@@ -71,7 +71,7 @@ namespace Test
                 "KEFLQQEQTKWNQKIKQEQHNTILIQQKVKDIYQNVDDLNIKTNREINQINNIIKHIQDI" +
                 "INHYNKNILLITELIQNTKNSHSILTHKVLNNIQKDISANM";
 
-            string protein = SearchPool.DegenerateSequence(O77390);
+            string protein = DataBaseManipulation.DegenerateSequence(O77390);
 
             string protein_select = "YGGLGYKGLLLGLKLGGG";
 

@@ -14,187 +14,103 @@ namespace Search_pool
     {
         public SearchPool()
         {
-
+            Parameters = new Parameters();
         }
 
-        public Parameters Parameters { get; set; }
+        public Parameters Parameters { get; private set; }
 
-        public static Dictionary<char, char> DegenerateTable = new Dictionary<char, char>
+        public void Run(string db_path, string query_path)
         {
-            {'G', 'G'},{'A', 'G'},{'S', 'G'},{'C', 'G'},{'V', 'G'},{'T', 'G'},{'I', 'G'},
-            {'g', 'G'},{'a', 'G'},{'s', 'G'},{'c', 'G'},{'v', 'G'},{'t', 'G'},{'i', 'G'},
-            {'P', 'P'},
-            {'p', 'P'},
-            {'L', 'L'},{'D', 'L'},{'N', 'L'},{'E', 'L'},{'Q', 'L'},{'M', 'L'},
-            {'l', 'L'},{'d', 'L'},{'n', 'L'},{'e', 'L'},{'q', 'L'},{'m', 'L'},
-            {'K', 'K'},{'R', 'K'},
-            {'k', 'K'},{'r', 'K'},
-            {'H', 'Y'},{'F', 'Y'},{'Y', 'Y'},
-            {'h', 'Y'},{'f', 'Y'},{'y', 'Y'},
-            {'W', 'W'},
-            {'w', 'W'},
-            {'X', 'X'},
-            {'x', 'X'},
+            var queries = DataBaseManipulation.LoadQueryMap(query_path);
 
-            {'U', 'G'},
-            {'u', 'G'},
-            {'B', 'L'},{'Z', 'L'},
-            {'b', 'L'},{'z', 'L'},
-        };
+            var dQueries = DataBaseManipulation.DegenerateQueryMap(queries);
 
-        public static Dictionary<string, char> ResiduesDictionary = new Dictionary<string, char>
-        {
-            {"ALA", 'A'},
-            {"ARG", 'R'},
-            {"ASN", 'N'},
-            {"ASP", 'D'},
-            {"CYS", 'C'},
-            {"GLU", 'E'},
-            {"GLN", 'Q'},
-            {"GLY", 'G'},
-            {"HIS", 'H'},
-            {"ILE", 'I'},
-            {"LEU", 'L'},
-            {"LYS", 'K'},
-            {"MET", 'M'},
-            {"PHE", 'F'},
-            {"PRO", 'P'},
-            {"PYL", 'O'},
-            {"SEL", 'U'},
-            {"SER", 'S'},
-            {"THR", 'T'},
-            {"TRP", 'W'},
-            {"TYR", 'Y'},
-            {"VAL", 'V'},
-            {"MSE", 'X'}  //print_seq = ['phenix.print_sequence', params.queryfile, '--letter_for_mse=X']
-        };
+            var proteins = DataBaseManipulation.LoadProteinDb(db_path, true, DecoyType.None, Parameters.MaxThreadsToUse);
 
-        public static List<Protein> LoadProteinDb(string fileName, bool generateTargets, DecoyType decoyType, List<string> localizeableModificationTypes, bool isContaminant, int MaxThreadsToUsePerFile)
-        {
-            List<string> dbErrors = new List<string>();
-            List<Protein> proteinList = new List<Protein>();
+            var dProteins = DataBaseManipulation.DegenerateProteinDa(proteins, Parameters.MaxThreadsToUse);
 
-            string theExtension = Path.GetExtension(fileName).ToLowerInvariant();
-            bool compressed = theExtension.EndsWith("gz"); // allows for .bgz and .tgz, too which are used on occasion
-            theExtension = compressed ? Path.GetExtension(Path.GetFileNameWithoutExtension(fileName)).ToLowerInvariant() : theExtension;
+            int[][] scores = new int[dQueries.Count][];
 
-            if (theExtension.Equals(".fasta") || theExtension.Equals(".fa"))
+            string[][] matchedSequences = new string[dQueries.Count][];
+
+            int gap = 32767;
+
+            for (int i = 0; i < dQueries.Count; i++)
             {
-                proteinList = ProteinDbLoader.LoadProteinFasta(fileName, generateTargets, decoyType, isContaminant, ProteinDbLoader.UniprotAccessionRegex, ProteinDbLoader.UniprotFullNameRegex, ProteinDbLoader.UniprotFullNameRegex, ProteinDbLoader.UniprotGeneNameRegex,
-                    ProteinDbLoader.UniprotOrganismRegex, out dbErrors, MaxThreadsToUsePerFile);
-            }
+                scores[i] = new int[dProteins.Length];
 
-            return proteinList.Where(p => p.BaseSequence.Length > 0).ToList();
-        }
+                matchedSequences[i] = new string[dProteins.Length];
 
-        public static string DegenerateSequence(string sequence)
-        {
-            string dSequence = "";
-            foreach (var c in sequence)
-            {
-                dSequence += DegenerateTable[c];
-            }
-            return dSequence;
-        }
-        public static Protein DegenerateProtein(Protein protein)
-        {
-            var updateBaseSeq = DegenerateSequence(protein.BaseSequence);
+                int[] threads = Enumerable.Range(0, Parameters.MaxThreadsToUse).ToArray();                
 
-            Protein dProtein = new Protein(protein, updateBaseSeq);
-            return dProtein;
-        }
-        public static Protein[] DegenerateProteinDa(List<Protein> proteins, int MaxThreadsToUsePerFile)
-        {
-            Protein[] dProteins = new Protein[proteins.Count];
-
-            int[] threads = Enumerable.Range(0, MaxThreadsToUsePerFile).ToArray();
-
-            Parallel.ForEach(threads, (index) =>
-            {
-                for (; index < proteins.Count; index += MaxThreadsToUsePerFile)
+                Parallel.ForEach(threads, (index) =>
                 {
-                    dProteins[index] = DegenerateProtein(proteins[index]);
-                }
-            });
-
-            return dProteins;
-        }
-
-        public static List<string> LoadQueryMap(string fileName)
-        {
-            List<string> queries = new List<string>();
-
-            string currentSeq = "";
-
-            HashSet<string> seenAminoAcids = new HashSet<string>();
-
-            HashSet<string> SeenSeqId = new HashSet<string>();
-
-            if (Path.GetExtension(fileName) == ".pdb")
-            {
-                using (StreamReader streamReader = new StreamReader(fileName))
-                {
-                    while (streamReader.Peek() != -1)
+                    for (; index < dProteins.Length; index += Parameters.MaxThreadsToUse)
                     {
-                        string line = streamReader.ReadLine();
+                        MatrixAlignment ma = new MatrixAlignment(dProteins[index].BaseSequence, dQueries[i]);
 
-                        if (line.StartsWith("TER") || line.StartsWith("END"))
-                        {
-                            queries.Add(currentSeq.ToString());
-                            currentSeq = "";
-                        }
-                      
-                        if (line.StartsWith("ATOM") || line.StartsWith("HETATM"))
-                        {                           
-                            var sp = Regex.Split(line, @"\s+");
-                            if (SeenSeqId.Contains(sp[4]))
-                            {
-                                string key = sp[4] + "_" + sp[5];
-                                if (!seenAminoAcids.Contains(key))
-                                {
-                                    seenAminoAcids.Add(key);                                  
-                                    currentSeq += ResiduesDictionary[sp[3]];
-                                }
-                            }
-                            else
-                            {                         
-                                if (SeenSeqId.Count > 0)
-                                {
-                                    queries.Add(currentSeq.ToString());
-                                    currentSeq = "";                          
-                                }
-                                else
-                                {
-                                    string key = sp[4] + "_" + sp[5];
-                                    if (!seenAminoAcids.Contains(key))
-                                    {
-                                        seenAminoAcids.Add(key);
-                                        currentSeq += ResiduesDictionary[sp[3]];
-                                    }
-                                }
-                                SeenSeqId.Add(sp[4]);
-                            }
+                        MatrixAlignment.AlignMatrix(ma, gap, MatrixAlignment.ScoreTable);
 
-                        }
+                        scores[i][index] = ma.MaxScore;
+
+                        var path = MatrixAlignment.Traceback(ma);
+
+                        var seqCom = MatrixAlignment.SequenceComparison(ma, path);
+
+                        matchedSequences[i][index] = string.Join('-', seqCom.Select(p => new string(p)));
+                    }
+                });
+            }
+
+            int[] addup_score = new int[dProteins.Length];
+            for (int j = 0; j < dProteins.Length; j++)
+            {
+                for (int i = 0; i < dQueries.Count; i++)
+                {
+                    addup_score[j] += scores[i][j];
+                }
+            }
+
+            int[] indexes = Enumerable.Range(0, dProteins.Length).ToArray();
+            Array.Sort(addup_score, indexes);
+            Array.Reverse(addup_score);
+            Array.Reverse(indexes);
+
+            List<Target> targets = new List<Target>();
+
+            int ind_add = 0;
+            foreach (var ind in indexes.Take(20))
+            {
+                var target = Target.SetTarget(addup_score[ind_add], dProteins[ind].Accession);
+                ind_add++;
+                target.SingleScores = new int[dQueries.Count];
+                target.Matched_sequences = new string[dQueries.Count];
+                for (int i = 0; i < dQueries.Count; i++)
+                {
+                    target.SingleScores[i] = scores[i][ind];
+                    target.Matched_sequences[i] = matchedSequences[i][ind];
+                }
+                targets.Add(target);
+            }
+
+            //Write candidate out.
+            string outFilePath = Path.Combine(Path.GetDirectoryName(query_path), @"targets.tsv");
+            WriteTargets(targets, outFilePath);
+        }
+
+        public static void WriteTargets(List<Target> targets, string outFilePath)
+        {
+            using (StreamWriter writer = new StreamWriter(outFilePath))
+            {
+                foreach (var t in targets)
+                {
+                    writer.WriteLine(t.Protein + "\t" + t.Addup_Score + "\t");
+                    for (int i = 0; i < t.SingleScores.Length; i++)
+                    {
+                        writer.WriteLine("\t" + t.SingleScores[i] + "\t" + t.Matched_sequences[i]);
                     }
                 }
             }
-
-            return queries;
         }
-
-        public static List<string> DegenerateQueryMap(List<string> queries)
-        {
-            List<string> dQueries = new List<string>();
-
-            foreach (var q in queries)
-            {
-                dQueries.Add( DegenerateSequence(q));
-            }
-
-            return dQueries;
-        }
-   
-        
     }
 }

@@ -11,4 +11,10 @@
     <PackageReference Include="mzLib" Version="1.0.469" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\elements.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

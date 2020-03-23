@@ -67,6 +67,7 @@ namespace Search_pool
             } },
         };
 
+        //Smith–Waterman algorithm
         public static void AlignMatrix(MatrixAlignment MA, int gap, Dictionary<char, Dictionary<char, int>> scoreTable)
         {
             var _maxScore = 0;
@@ -106,9 +107,9 @@ namespace Search_pool
             }
         }
 
+        //Tuple<int, int, int> (pos j, pos i, from 0:up-left, 1:left, -1:up)
         public static Stack<Tuple<int, int, int>> Traceback(MatrixAlignment MA)
         {
-            //Tuple<int, int, int> (pos j, pos i, from)
             Stack<Tuple<int, int, int>> path = new Stack<Tuple<int, int, int>>();
 
             int j = MA.MaxScorePos.Item1;
