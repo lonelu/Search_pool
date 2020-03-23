@@ -41,7 +41,9 @@ namespace Search_pool
 
                 matchedSequences[i] = new string[dProteins.Length];
 
-                int[] threads = Enumerable.Range(0, Parameters.MaxThreadsToUse).ToArray();                
+                int[] threads = Enumerable.Range(0, Parameters.MaxThreadsToUse).ToArray();
+
+                //TO DO: the MatrixAlignment can be optimized. Basicly we create a large MatrixAlignment and Clear the content each time to reduce the usage of memory.
 
                 Parallel.ForEach(threads, (index) =>
                 {
